@@ -103,13 +103,13 @@ services:
 
 databases:
   - name: fairflow-db
-    plan: starter
+    plan: starter-plus
     databaseName: fairflow
     user: fairflow
     ipAllowList: []
 
   - name: fairflow-db-staging
-    plan: starter
+    plan: starter-plus
     databaseName: fairflow_staging
     user: fairflow_staging
     ipAllowList: []
