@@ -58,9 +58,10 @@ services:
     plan: starter
     buildCommand: |
       corepack enable
-      pnpm i --filter @fairflow/api...
-      pnpm --filter @fairflow/api prisma migrate deploy
-      pnpm --filter @fairflow/api build
+      pnpm install
+      pnpm exec prisma migrate deploy
+      pnpm run build
+
     startCommand: node apps/api/dist/server.js
     autoDeploy: true
     domains:
@@ -84,8 +85,9 @@ services:
     plan: starter
     buildCommand: |
       corepack enable
-      pnpm i --filter @fairflow/web...
-      pnpm --filter @fairflow/web build
+      pnpm install
+      pnpm exec prisma migrate deploy
+      pnpm run build
     startCommand: pnpm --filter @fairflow/web start
     autoDeploy: true
     domains:
