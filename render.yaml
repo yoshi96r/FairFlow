@@ -63,7 +63,7 @@ services:
 
   - type: web
     name: fairflow-www
-    env: static
+    env: static_site
     plan: starter
     buildCommand: echo "Static site — no build step"
     staticPublishPath: apps/www
