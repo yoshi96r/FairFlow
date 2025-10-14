@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FairFlow Logistics — Smarter Last-Mile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg:#0f172a; --fg:#e2e8f0; --muted:#94a3b8; --brand:#22c55e; }
+    * { box-sizing: border-box; }
+    html, body { margin:0; height:100%; font-family: Inter, ui-sans-serif, system-ui; background: var(--bg); color: var(--fg); }
+    .hero { padding: 72px 24px; max-width: 1100px; margin: 0 auto; display:grid; grid-template-columns: 1.2fr 1fr; gap: 36px; align-items: center; }
+    .title { font-size: 48px; line-height: 1.1; font-weight: 700; margin: 0 0 16px; }
+    .subtitle { color: var(--muted); font-size: 18px; margin-bottom: 24px; }
+    .cta { display: inline-block; background: var(--brand); color: #062a12; padding: 12px 20px; border-radius: 10px; font-weight: 600; text-decoration: none; }
+    .ghost { margin-left: 12px; color: var(--fg); border: 1px solid #334155; padding: 10px 18px; border-radius: 10px; text-decoration: none; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 36px; }
+    .card { background: #0b1220; border: 1px solid #1f2937; padding: 18px; border-radius: 14px; }
+    .pill { display:inline-block; font-size: 12px; padding: 4px 10px; background: #0d281a; color: #34d399; border: 1px solid #134e4a; border-radius: 999px; margin-bottom: 8px; }
+    .footer { text-align:center; color: var(--muted); padding: 28px; border-top: 1px solid #1f2937; margin-top: 48px; }
+    @media(max-width: 900px){ .hero{ grid-template-columns: 1fr; } .cards{ grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <section class="hero">
+    <div>
+      <div class="pill">Modern Logistics Ops</div>
+      <h1 class="title">FairFlow: Replace legacy route apps with a faster, cleaner stack</h1>
+      <p class="subtitle">Dispatch, live driver tracking, barcode scanning, POD, invoices — all in one dashboard. Secure, real‑time, and built to scale.</p>
+      <div>
+        <a class="cta" href="https://app.fairflowlogistics.com/track">Open the App</a>
+        <a class="ghost" href="#contact">Talk to Sales</a>
+      </div>
+      <div class="cards">
+        <div class="card"><h3>Live Tracking</h3><p>Real‑time WebSocket map with per‑route colors and filters.</p></div>
+        <div class="card"><h3>Driver App</h3><p>Background GPS, barcode scan, POD, exceptions.</p></div>
+        <div class="card"><h3>Billing & Reports</h3><p>Per‑stop pricing, exports, and webhooks to WMS/ERP.</p></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <h3 style="margin-top:0">Why FairFlow?</h3>
+        <ul>
+          <li>Open architecture (Postgres + Prisma + React)</li>
+          <li>Zero‑downtime blue/green deploys</li>
+          <li>JWT‑secured driver updates</li>
+          <li>Staging → Promote to Prod pipeline</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <section id="contact" class="footer">© FairFlow Logistics. Need a demo? Email <a href="mailto:hello@fairflowlogistics.com">hello@fairflowlogistics.com</a>.</section>
+</body>
+</html>

@@ -1,0 +1,41 @@
+name: CI & Deploy to Render
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Enable corepack & install
+        run: |
+          corepack enable
+          pnpm -v || npm i -g pnpm
+          pnpm i
+      - name: Typecheck/build API
+        run: pnpm --filter @fairflow/api build
+      - name: Build Web
+        run: pnpm --filter @fairflow/web build
+
+  deploy-render:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploys
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_API_BASE: https://api.render.com/v1
+          API_SERVICE_ID: ${{ secrets.RENDER_API_SERVICE_ID }}
+          WEB_SERVICE_ID: ${{ secrets.RENDER_WEB_SERVICE_ID }}
+        run: |
+          echo "Triggering API deploy..."
+          curl -s -X POST "$RENDER_API_BASE/services/$API_SERVICE_ID/deploys"             -H "Authorization: Bearer $RENDER_API_KEY"             -H "Content-Type: application/json"             -d '{}'
+
+          echo "Triggering Web deploy..."
+          curl -s -X POST "$RENDER_API_BASE/services/$WEB_SERVICE_ID/deploys"             -H "Authorization: Bearer $RENDER_API_KEY"             -H "Content-Type: application/json"             -d '{}'

@@ -1,0 +1,12 @@
+{
+  "name": "fairflow",
+  "private": true,
+  "packageManager": "pnpm@9",
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "db:migrate": "pnpm --filter @fairflow/api prisma migrate deploy",
+    "db:reset": "pnpm --filter @fairflow/api prisma migrate reset --force && pnpm --filter @fairflow/api prisma db seed"
+  },
+  "workspaces": ["apps/*"]
+}

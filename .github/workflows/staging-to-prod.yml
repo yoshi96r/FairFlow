@@ -1,0 +1,92 @@
+name: Staging Deploy → Manual Promote to Prod
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Enable corepack & install
+        run: |
+          corepack enable
+          pnpm -v || npm i -g pnpm
+          pnpm i
+      - name: Typecheck/build API
+        run: pnpm --filter @fairflow/api build
+      - name: Build Web
+        run: pnpm --filter @fairflow/web build
+
+  deploy-staging:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploys (staging)
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_API_BASE: https://api.render.com/v1
+          API_SERVICE_ID: ${{ secrets.RENDER_API_SERVICE_ID_STAGING }}
+          WEB_SERVICE_ID: ${{ secrets.RENDER_WEB_SERVICE_ID_STAGING }}
+        run: |
+          echo "Triggering STAGING API deploy..."
+          curl -s -X POST "$RENDER_API_BASE/services/$API_SERVICE_ID/deploys"             -H "Authorization: Bearer $RENDER_API_KEY"             -H "Content-Type: application/json"             -d '{}'
+          echo "Triggering STAGING Web deploy..."
+          curl -s -X POST "$RENDER_API_BASE/services/$WEB_SERVICE_ID/deploys"             -H "Authorization: Bearer $RENDER_API_KEY"             -H "Content-Type: application/json"             -d '{}'
+
+  approve-and-promote:
+    needs: deploy-staging
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.weburl.outputs.url }}
+    steps:
+      - name: Manual approval gate
+        run: echo "Proceeding to production after manual approval in the 'production' environment."
+      - name: Trigger Render deploys (production)
+        id: deployprod
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_API_BASE: https://api.render.com/v1
+          API_SERVICE_ID: ${{ secrets.RENDER_API_SERVICE_ID_PROD }}
+          WEB_SERVICE_ID: ${{ secrets.RENDER_WEB_SERVICE_ID_PROD }}
+        run: |
+          echo "Triggering PROD API deploy..."
+          curl -s -X POST "$RENDER_API_BASE/services/$API_SERVICE_ID/deploys"             -H "Authorization: Bearer $RENDER_API_KEY"             -H "Content-Type: application/json"             -d '{}'
+          echo "Triggering PROD Web deploy..."
+          curl -s -X POST "$RENDER_API_BASE/services/$WEB_SERVICE_ID/deploys"             -H "Authorization: Bearer $RENDER_API_KEY"             -H "Content-Type: application/json"             -d '{}'
+
+promote-guard:
+  needs: deploy-staging
+  runs-on: ubuntu-latest
+  steps:
+
+
+- name: Migration guard (diff staging→prod)
+  env:
+    STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+    PRODUCTION_DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+  run: |
+    echo "Checking destructive schema changes with Prisma…"
+    pnpm --filter @fairflow/api prisma migrate diff --from-url="$STAGING_DATABASE_URL" --to-url="$PRODUCTION_DATABASE_URL" --exit-code
+
+
+canary-warmup:
+  needs: approve-and-promote
+  runs-on: ubuntu-latest
+  steps:
+    - name: Canary warm-up
+      env:
+        API_URL: ${{ secrets.PRODUCTION_API_URL }}
+      run: |
+        echo "Hitting health check…"
+        curl -sfL "$API_URL/api/healthz"
+        echo "Prefetching common endpoints…"
+        curl -s "$API_URL/api/routes?serviceDate=$(date +%F)" >/dev/null || true
+        sleep 10
+        echo "Warm-up done."

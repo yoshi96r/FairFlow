@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "FairFlow Driver",
+    "slug": "fairflow-driver",
+    "scheme": "fairflow",
+    "ios": {
+      "bundleIdentifier": "com.fairflow.driver",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "We use your location to update deliveries.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Background location keeps your route updated while the app is closed."
+      }
+    },
+    "android": {
+      "package": "com.fairflow.driver",
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "FOREGROUND_SERVICE"],
+      "foregroundService": {
+        "notificationTitle": "FairFlow",
+        "notificationText": "Tracking your route…"
+      }
+    }
+  }
+}
