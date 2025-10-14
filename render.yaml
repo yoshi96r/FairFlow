@@ -61,7 +61,7 @@ services:
           type: web
           property: url
 
-  - type: static
+  - type: web_static
     name: fairflow-www
     plan: starter
     buildCommand: echo "Static site — no build step"
