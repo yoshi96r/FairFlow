@@ -61,7 +61,7 @@ services:
           type: web
           property: url
 
-  - type: web
+  - type: static
     name: fairflow-www
     plan: starter
     buildCommand: echo "Static site — no build step"
@@ -69,11 +69,11 @@ services:
     domains:
       - www.fairflowlogistics.com
     autoDeploy: false
-    autoRedirectToHttps: true
     headers:
       - path: /*
         name: Strict-Transport-Security
         value: max-age=31536000; includeSubDomains; preload
+
 
   # === STAGING STACK ===
   - type: web
