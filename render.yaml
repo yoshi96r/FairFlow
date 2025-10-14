@@ -61,7 +61,7 @@ services:
           type: web
           property: url
 
-    - type: web
+  - type: web
     name: fairflow-www
     env: static
     plan: starter
@@ -76,7 +76,6 @@ services:
         name: Strict-Transport-Security
         value: max-age=31536000; includeSubDomains; preload
 
-
   # === STAGING STACK ===
   - type: web
     name: fairflow-api-staging
@@ -85,68 +84,5 @@ services:
     buildCommand: |
       corepack enable
       pnpm i --filter @fairflow/api...
-      pnpm --filter @fairflow/api prisma migrate deploy
-      pnpm --filter @fairflow/api build
-    startCommand: node apps/api/dist/server.js
-    autoDeploy: true
-    domains:
-      - staging-api.fairflowlogistics.com
-    healthCheckPath: /api/healthz
-    autoRedirectToHttps: true
-    envVars:
-      - key: NODE_VERSION
-        value: 20
-      - key: PORT
-        value: 10000
-      - key: DATABASE_URL
-        fromDatabase:
-          name: fairflow-db-staging
-          property: connectionString
-      - key: JWT_SECRET
-        generateValue: true
+      pnpm --filter @fairflo
 
-  - type: web
-    name: fairflow-web-staging
-    env: node
-    plan: starter
-    buildCommand: |
-      corepack enable
-      pnpm i --filter @fairflow/web...
-      pnpm --filter @fairflow/web build
-    startCommand: pnpm --filter @fairflow/web start
-    autoDeploy: true
-    domains:
-      - staging.fairflowlogistics.com
-    autoRedirectToHttps: true
-    envVars:
-      - key: NODE_VERSION
-        value: 20
-      - key: PORT
-        value: 10000
-      - key: API_URL
-        fromService:
-          name: fairflow-api-staging
-          type: web
-          property: url
-      - key: NEXT_PUBLIC_API_URL
-        fromService:
-          name: fairflow-api-staging
-          type: web
-          property: url
-      - key: NEXT_PUBLIC_WS_URL
-        fromService:
-          name: fairflow-api-staging
-          type: web
-          property: url
-
-databases:
-  - name: fairflow-db
-    plan: starter
-    databaseName: fairflow
-    user: fairflow
-    ipAllowList: []
-  - name: fairflow-db-staging
-    plan: starter
-    databaseName: fairflow_staging
-    user: fairflow_staging
-    ipAllowList: []
