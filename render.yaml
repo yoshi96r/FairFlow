@@ -44,20 +44,11 @@ services:
       - key: PORT
         value: 10000
       - key: API_URL
-        fromService:
-          name: fairflow-api
-          type: web
-          property: url
+        value: https://api.fairflowlogistics.com
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          name: fairflow-api
-          type: web
-          property: url
+        value: https://api.fairflowlogistics.com
       - key: NEXT_PUBLIC_WS_URL
-        fromService:
-          name: fairflow-api
-          type: web
-          property: url
+        value: wss://api.fairflowlogistics.com
 
   # === STAGING STACK ===
   - type: web
@@ -104,20 +95,11 @@ services:
       - key: PORT
         value: 10000
       - key: API_URL
-        fromService:
-          name: fairflow-api-staging
-          type: web
-          property: url
+        value: https://staging-api.fairflowlogistics.com
       - key: NEXT_PUBLIC_API_URL
-        fromService:
-          name: fairflow-api-staging
-          type: web
-          property: url
+        value: https://staging-api.fairflowlogistics.com
       - key: NEXT_PUBLIC_WS_URL
-        fromService:
-          name: fairflow-api-staging
-          type: web
-          property: url
+        value: wss://staging-api.fairflowlogistics.com
 
 databases:
   - name: fairflow-db
