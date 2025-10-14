@@ -14,7 +14,6 @@ services:
     domains:
       - api.fairflowlogistics.com
     healthCheckPath: /api/healthz
-    autoRedirectToHttps: true
     envVars:
       - key: NODE_VERSION
         value: 20
@@ -39,7 +38,6 @@ services:
     autoDeploy: false
     domains:
       - app.fairflowlogistics.com
-    autoRedirectToHttps: true
     envVars:
       - key: NODE_VERSION
         value: 20
@@ -76,7 +74,6 @@ services:
     domains:
       - staging-api.fairflowlogistics.com
     healthCheckPath: /api/healthz
-    autoRedirectToHttps: true
     envVars:
       - key: NODE_VERSION
         value: 20
@@ -101,7 +98,6 @@ services:
     autoDeploy: true
     domains:
       - staging.fairflowlogistics.com
-    autoRedirectToHttps: true
     envVars:
       - key: NODE_VERSION
         value: 20
