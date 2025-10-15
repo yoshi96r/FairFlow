@@ -1,8 +1,14 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 model Tenant {
-  id           String          @id @default(cuid())
+  id           String            @id @default(cuid())
   name         String
   users        User[]
   drivers      Driver[]
@@ -11,7 +17,7 @@ model Tenant {
   routes       Route[]
   pricingRules PricingRule[]
   webhooks     WebhookEndpoint[]
-  createdAt    DateTime        @default(now())
+  createdAt    DateTime          @default(now())
 }
 
 model User {
@@ -25,72 +31,92 @@ model User {
   createdAt      DateTime @default(now())
 }
 
-enum UserRole { OWNER ADMIN DISPATCHER VIEWER }
+enum UserRole {
+  OWNER
+  ADMIN
+  DISPATCHER
+  VIEWER
+}
 
 model Driver {
-  id            String   @id @default(cuid())
-  tenantId      String
-  tenant        Tenant   @relation(fields: [tenantId], references: [id])
-  name          String
-  phone         String?
-  externalId    String?
-  active        Boolean  @default(true)
-  vehiclePlate  String?
-  lastKnownLat  Float?
-  lastKnownLng  Float?
-  lastSeenAt    DateTime?
-  routes        Route[]
-  positions     DriverPosition[]
-  createdAt     DateTime @default(now())
+  id           String           @id @default(cuid())
+  tenantId     String
+  tenant       Tenant           @relation(fields: [tenantId], references: [id])
+  name         String
+  phone        String?
+  externalId   String?
+  active       Boolean          @default(true)
+  vehiclePlate String?
+  lastKnownLat Float?
+  lastKnownLng Float?
+  lastSeenAt   DateTime?
+  routes       Route[]
+  positions    DriverPosition[]
+  createdAt    DateTime         @default(now())
 }
 
 model Customer {
-  id            String   @id @default(cuid())
+  id           String     @id @default(cuid())
+  tenantId     String
+  tenant       Tenant     @relation(fields: [tenantId], references: [id])
+  name         String
+  contactEmail String?
+  contactPhone String?
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  postalCode   String
+  country      String     @default("US")
+  shipments    Shipment[]
+  createdAt    DateTime   @default(now())
+
+  @@unique([tenantId, name], name: "tenantId_name")
+}
+
+model Shipment {
+  id            String         @id @default(cuid())
   tenantId      String
-  tenant        Tenant   @relation(fields: [tenantId], references: [id])
-  name          String
-  contactEmail  String?
-  contactPhone  String?
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  customerId    String?
+  customer      Customer?      @relation(fields: [customerId], references: [id])
+  trackingCode  String         @unique
+  referenceNo   String?
+  weightGrams   Int?
+  volumeCubicCm Int?
+  notes         String?
+  serviceLevel  ServiceLevel   @default(STANDARD)
+  pickupAt      DateTime?
+  deliverBy     DateTime?
   addressLine1  String
   addressLine2  String?
   city          String
   state         String
   postalCode    String
-  country       String   @default("US")
-  shipments     Shipment[]
-  createdAt     DateTime @default(now())
+  country       String         @default("US")
+  geoLat        Float?
+  geoLng        Float?
+  status        ShipmentStatus @default(CREATED)
+  statusEvents  StatusEvent[]
+  routeStops    RouteStop[]
+  createdAt     DateTime       @default(now())
 }
 
-model Shipment {
-  id             String          @id @default(cuid())
-  tenantId       String
-  tenant         Tenant          @relation(fields: [tenantId], references: [id])
-  customerId     String?
-  customer       Customer?       @relation(fields: [customerId], references: [id])
-  trackingCode   String          @unique
-  referenceNo    String?
-  weightGrams    Int?
-  volumeCubicCm  Int?
-  notes          String?
-  serviceLevel   ServiceLevel    @default(STANDARD)
-  pickupAt       DateTime?
-  deliverBy      DateTime?
-  addressLine1   String
-  addressLine2   String?
-  city           String
-  state          String
-  postalCode     String
-  country        String          @default("US")
-  geoLat         Float?
-  geoLng         Float?
-  status         ShipmentStatus  @default(CREATED)
-  statusEvents   StatusEvent[]
-  routeStops     RouteStop[]
-  createdAt      DateTime        @default(now())
+enum ServiceLevel {
+  STANDARD
+  EXPEDITED
+  OVERNIGHT
 }
 
-enum ServiceLevel { STANDARD EXPEDITED OVERNIGHT }
-enum ShipmentStatus { CREATED ASSIGNED IN_TRANSIT DELIVERED EXCEPTION RETURNED CANCELED }
+enum ShipmentStatus {
+  CREATED
+  ASSIGNED
+  IN_TRANSIT
+  DELIVERED
+  EXCEPTION
+  RETURNED
+  CANCELED
+}
 
 model Route {
   id          String      @id @default(cuid())
@@ -105,42 +131,53 @@ model Route {
   createdAt   DateTime    @default(now())
 }
 
-enum RouteStatus { DRAFT PUBLISHED LOCKED COMPLETED CANCELED }
+enum RouteStatus {
+  DRAFT
+  PUBLISHED
+  LOCKED
+  COMPLETED
+  CANCELED
+}
 
 model RouteStop {
-  id          String   @id @default(cuid())
-  routeId     String
-  route       Route    @relation(fields: [routeId], references: [id])
-  shipmentId  String
-  shipment    Shipment @relation(fields: [shipmentId], references: [id])
-  sequence    Int
-  eta         DateTime?
-  arrivedAt   DateTime?
-  departedAt  DateTime?
+  id                    String    @id @default(cuid())
+  routeId               String
+  route                 Route     @relation(fields: [routeId], references: [id])
+  shipmentId            String
+  shipment              Shipment  @relation(fields: [shipmentId], references: [id])
+  sequence              Int
+  eta                   DateTime?
+  arrivedAt             DateTime?
+  departedAt            DateTime?
   proofOfDeliveryPodUrl String?
-  signatureSvg String?
-  photoUrls   String[] @default([])
-  exceptionCode String?
-  notes       String?
-  scanVerified Boolean @default(false)
-  geoLat      Float?
-  geoLng      Float?
+  signatureSvg          String?
+  photoUrls             String[]  @default([])
+  exceptionCode         String?
+  notes                 String?
+  scanVerified          Boolean   @default(false)
+  geoLat                Float?
+  geoLng                Float?
 }
 
 model StatusEvent {
-  id        String         @id @default(cuid())
+  id         String         @id @default(cuid())
   shipmentId String
-  shipment  Shipment       @relation(fields: [shipmentId], references: [id])
-  status    ShipmentStatus
-  actorType ActorType
-  actorId   String?
-  at        DateTime       @default(now())
-  lat       Float?
-  lng       Float?
-  data      Json?
+  shipment   Shipment       @relation(fields: [shipmentId], references: [id])
+  status     ShipmentStatus
+  actorType  ActorType
+  actorId    String?
+  at         DateTime       @default(now())
+  lat        Float?
+  lng        Float?
+  data       Json?
 }
 
-enum ActorType { SYSTEM USER DRIVER WEBHOOK }
+enum ActorType {
+  SYSTEM
+  USER
+  DRIVER
+  WEBHOOK
+}
 
 model PricingRule {
   id          String      @id @default(cuid())
@@ -154,7 +191,11 @@ model PricingRule {
   conditions  Json        @default("{}")
 }
 
-enum PricingType { PER_STOP PER_MILE FLAT_ZONE }
+enum PricingType {
+  PER_STOP
+  PER_MILE
+  FLAT_ZONE
+}
 
 model WebhookEndpoint {
   id       String         @id @default(cuid())
@@ -166,7 +207,16 @@ model WebhookEndpoint {
   events   WebhookEvent[] @default([])
 }
 
-enum WebhookEvent { shipment_created shipment_assigned shipment_scan_ok shipment_pod_captured shipment_delivered shipment_exception route_published route_completed }
+enum WebhookEvent {
+  shipment_created
+  shipment_assigned
+  shipment_scan_ok
+  shipment_pod_captured
+  shipment_delivered
+  shipment_exception
+  route_published
+  route_completed
+}
 
 model DriverPosition {
   id       String   @id @default(cuid())
@@ -177,6 +227,6 @@ model DriverPosition {
   speedKph Float?
   heading  Float?
   at       DateTime @default(now())
-}
 
-@@index([driverId, at])
+  @@index([driverId, at])
+}
