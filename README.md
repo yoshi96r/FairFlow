@@ -23,6 +23,21 @@ pnpm --filter @fairflow/web dev
 
 Open http://localhost:3001/track for the live map.
 
+### Dispatch console login
+
+The seed script provisions a dispatcher account for the web control tower:
+
+- **Email:** `dispatcher@fairflow.local`
+- **Password:** `dispatch`
+
+Sign in at [http://localhost:3001/login](http://localhost:3001/login) to create shipments, publish routes, and monitor drivers.
+
+### Feature tour
+
+- **/dashboard** – Shipment table with status actions, route planning, and driver roster.
+- **/track** – Live MapLibre view fed by the WebSocket stream (`/api/ws/live`).
+- **/capabilities** – Embedded capability matrix that captures the product roadmap.
+
 ## Driver app (Expo)
 
 Update the API base if not using proxy. Run on emulator/device, login with any phone, it will start background tracking.
@@ -89,6 +104,12 @@ We mapped:
 - Enforces secure `https://` + `wss://` for WebSockets and mobile apps.
 - Cleaner URLs for drivers/dispatchers.
 - Lets you separate marketing (`www`) from the app (`app`).
+
+---
+
+## Product Backlog Reference
+
+For a comprehensive capability matrix covering user roles, shipment workflows, integrations, analytics, and roadmap phases, see [`docs/logistics-capability-matrix.md`](docs/logistics-capability-matrix.md).
 
 ---
 
