@@ -1,4 +1,5 @@
 import { PrismaClient, ShipmentStatus } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -148,12 +149,14 @@ async function main() {
     create: { id: 'demo-tenant', name: 'Demo Tenant' },
   });
 
+  const hashedPassword = await bcrypt.hash('dispatch', 10);
+
   await prisma.user.upsert({
     where: { email: 'dispatcher@fairflow.local' },
-    update: { hashedPassword: 'dispatch' },
+    update: { hashedPassword },
     create: {
       email: 'dispatcher@fairflow.local',
-      hashedPassword: 'dispatch',
+      hashedPassword,
       tenantId: tenant.id,
       role: 'DISPATCHER',
     },

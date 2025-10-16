@@ -3,6 +3,7 @@ import cors from 'cors';
 import fileUpload from 'express-fileupload';
 import http from 'http';
 import { WebSocketServer } from 'ws';
+import bcrypt from 'bcryptjs';
 import { prisma } from './lib/prisma';
 import {
   AuthToken,
@@ -163,7 +164,11 @@ app.post('/api/auth/login', async (req, res) => {
     return res.status(400).json({ ok: false, error: 'MISSING_CREDENTIALS' });
   }
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user || user.hashedPassword !== password) {
+  if (!user || !user.hashedPassword) {
+    return res.status(401).json({ ok: false, error: 'INVALID_LOGIN' });
+  }
+  const passwordMatches = await bcrypt.compare(password, user.hashedPassword);
+  if (!passwordMatches) {
     return res.status(401).json({ ok: false, error: 'INVALID_LOGIN' });
   }
   const token = signUserToken(user.id, user.tenantId, user.role);
@@ -475,6 +480,13 @@ app.post('/api/routes', requireUser, async (req, res) => {
     return res.status(400).json({ ok: false, error: 'SHIPMENT_MISMATCH' });
   }
 
+  if (payload.driverId) {
+    const driver = await prisma.driver.findFirst({ where: { id: payload.driverId, tenantId } });
+    if (!driver) {
+      return res.status(400).json({ ok: false, error: 'DRIVER_MISMATCH' });
+    }
+  }
+
   const route = await prisma.route.create({
     data: {
       tenantId,
@@ -538,7 +550,15 @@ app.patch('/api/routes/:id', requireUser, async (req, res) => {
   if (name) data.name = name;
   if (serviceDate) data.serviceDate = new Date(serviceDate);
   if (driverId !== undefined) {
-    data.driver = driverId ? { connect: { id: driverId } } : { disconnect: true };
+    if (driverId) {
+      const driver = await prisma.driver.findFirst({ where: { id: driverId, tenantId } });
+      if (!driver) {
+        return res.status(400).json({ ok: false, error: 'DRIVER_MISMATCH' });
+      }
+      data.driver = { connect: { id: driverId } };
+    } else {
+      data.driver = { disconnect: true };
+    }
   }
 
   const updated = await prisma.route.update({ where: { id: route.id }, data });
