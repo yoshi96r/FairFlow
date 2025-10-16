@@ -158,6 +158,15 @@ app.post('/api/mobile/login', async (req, res) => {
   res.json({ ok: true, token, driverId: driver.id });
 });
 
+async function verifyPassword(candidate: string, hashed: string): Promise<boolean> {
+  if (!candidate || !hashed) return false;
+  try {
+    return await bcrypt.compare(candidate, hashed);
+  } catch (err) {
+    return false;
+  }
+}
+
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body as { email?: string; password?: string };
   if (!email || !password) {
@@ -167,7 +176,7 @@ app.post('/api/auth/login', async (req, res) => {
   if (!user || !user.hashedPassword) {
     return res.status(401).json({ ok: false, error: 'INVALID_LOGIN' });
   }
-  const passwordMatches = await bcrypt.compare(password, user.hashedPassword);
+  const passwordMatches = await verifyPassword(password, user.hashedPassword);
   if (!passwordMatches) {
     return res.status(401).json({ ok: false, error: 'INVALID_LOGIN' });
   }
@@ -407,6 +416,10 @@ app.get('/api/drivers', requireUser, async (req, res) => {
   res.json({ ok: true, drivers: response });
 });
 
+async function ensureTenantDriver(driverId: string, tenantId: string) {
+  return prisma.driver.findFirst({ where: { id: driverId, tenantId } });
+}
+
 function mapRoute(route: Awaited<ReturnType<typeof fetchRouteById>>) {
   if (!route) return null;
   return {
@@ -481,7 +494,7 @@ app.post('/api/routes', requireUser, async (req, res) => {
   }
 
   if (payload.driverId) {
-    const driver = await prisma.driver.findFirst({ where: { id: payload.driverId, tenantId } });
+    const driver = await ensureTenantDriver(payload.driverId, tenantId);
     if (!driver) {
       return res.status(400).json({ ok: false, error: 'DRIVER_MISMATCH' });
     }
@@ -551,7 +564,7 @@ app.patch('/api/routes/:id', requireUser, async (req, res) => {
   if (serviceDate) data.serviceDate = new Date(serviceDate);
   if (driverId !== undefined) {
     if (driverId) {
-      const driver = await prisma.driver.findFirst({ where: { id: driverId, tenantId } });
+      const driver = await ensureTenantDriver(driverId, tenantId);
       if (!driver) {
         return res.status(400).json({ ok: false, error: 'DRIVER_MISMATCH' });
       }
