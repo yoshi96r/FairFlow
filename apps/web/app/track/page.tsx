@@ -1,24 +1,60 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import maplibregl, { Map as MLMap, Marker } from 'maplibre-gl';
 import { colorForRoute } from './colors';
 
+type MaplibreModule = typeof import('maplibre-gl');
+type MapInstance = import('maplibre-gl').Map;
+type MapMarker = import('maplibre-gl').Marker;
+
 export default function TrackPage() {
-  const mapRef = useRef(null as MLMap | null);
-  const elRef = useRef(null as HTMLDivElement | null);
-  const markers = useRef(new Map());
+  const mapModuleRef = useRef<MaplibreModule | null>(null);
+  const mapRef = useRef<MapInstance | null>(null);
+  const elRef = useRef<HTMLDivElement | null>(null);
+  const markers = useRef(new Map<string, MapMarker>());
   const [connected, setConnected] = useState(false);
   const [drivers, setDrivers] = useState([] as any[]);
   const [q, setQ] = useState('');
   const [routeFilter, setRouteFilter] = useState('ALL' as any);
 
   useEffect(() => {
-    if (!elRef.current || mapRef.current) return;
-    const style = process.env.NEXT_PUBLIC_MAP_STYLE || process.env.MAP_STYLE || 'https://demotiles.maplibre.org/style.json';
-    const map = new maplibregl.Map({ container: elRef.current, style, center: [-87.623, 41.882], zoom: 11 });
-    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
-    mapRef.current = map;
-    return () => map.remove();
+    let disposed = false;
+
+    async function initMap() {
+      if (!elRef.current || mapRef.current) return;
+      let loadedModule = mapModuleRef.current;
+      if (!loadedModule) {
+        const imported = (await import('maplibre-gl')) as MaplibreModule & {
+          default?: MaplibreModule;
+        };
+        loadedModule = imported.Map ? imported : imported.default ?? imported;
+        mapModuleRef.current = loadedModule;
+      }
+      if (!loadedModule || !elRef.current || mapRef.current || disposed) return;
+
+      const style =
+        process.env.NEXT_PUBLIC_MAP_STYLE ||
+        process.env.MAP_STYLE ||
+        'https://demotiles.maplibre.org/style.json';
+
+      const map = new loadedModule.Map({
+        container: elRef.current,
+        style,
+        center: [-87.623, 41.882],
+        zoom: 11,
+      });
+      map.addControl(new loadedModule.NavigationControl({ visualizePitch: true }), 'top-right');
+      mapRef.current = map;
+    }
+
+    initMap();
+
+    return () => {
+      disposed = true;
+      markers.current.forEach((mk) => mk.remove());
+      markers.current.clear();
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -47,8 +83,9 @@ export default function TrackPage() {
   }, [drivers, q, routeFilter]);
 
   useEffect(() => {
-    if (!mapRef.current) return;
-    const m:any = markers.current;
+    const maplibre = mapModuleRef.current;
+    if (!mapRef.current || !maplibre) return;
+    const m = markers.current;
     const keep = new Set();
     filtered.forEach((d:any) => {
       keep.add(d.id);
@@ -58,16 +95,19 @@ export default function TrackPage() {
         const el = document.createElement('div');
         el.style.width = '18px'; el.style.height = '18px'; el.style.borderRadius = '50%';
         el.style.background = color; el.style.boxShadow = '0 0 0 2px #fff';
-        mk = new (maplibregl as any).Marker({ element: el }).setLngLat([d.lng, d.lat])
-          .setPopup(new (maplibregl as any).Popup({ offset: 12 }).setHTML(`<b>${d.name}</b><br/>${d.routeId || 'Unassigned'}`))
+        mk = new maplibre.Marker({ element: el }).setLngLat([d.lng, d.lat])
+          .setPopup(new maplibre.Popup({ offset: 12 }).setHTML(`<b>${d.name}</b><br/>${d.routeId || 'Unassigned'}`))
           .addTo(mapRef.current);
         m.set(d.id, mk);
       }
       mk.setLngLat([d.lng, d.lat]);
     });
-    for (const [id, mk] of m.entries()) {
-      if (!keep.has(id)) { mk.remove(); m.delete(id); }
-    }
+    m.forEach((mk, id) => {
+      if (!keep.has(id)) {
+        mk.remove();
+        m.delete(id);
+      }
+    });
   }, [filtered]);
 
   function focus(driver:any){ mapRef.current?.flyTo({ center: [driver.lng, driver.lat], zoom: 14 }); }
