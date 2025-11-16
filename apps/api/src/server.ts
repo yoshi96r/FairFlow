@@ -3,6 +3,7 @@ import cors from 'cors';
 import fileUpload from 'express-fileupload';
 import http from 'http';
 import { WebSocketServer } from 'ws';
+import { ActorType, RouteStatus, ServiceLevel, ShipmentStatus } from '@prisma/client';
 import { prisma } from './lib/prisma';
 import { signDriverToken, verifyToken } from './lib/jwt';
 
@@ -134,7 +135,11 @@ app.post('/api/shipments', async (req, res) => {
     resolvedCustomerId = customer?.id || undefined;
   }
 
-  const normalizedService = typeof serviceLevel === 'string' ? serviceLevel.toUpperCase() : 'STANDARD';
+  const normalizedService: ServiceLevel =
+    typeof serviceLevel === 'string' &&
+    (Object.values(ServiceLevel) as string[]).includes(serviceLevel.toUpperCase())
+      ? (serviceLevel.toUpperCase() as ServiceLevel)
+      : ServiceLevel.STANDARD;
   const code = trackingCode || `FF${Math.floor(Date.now() / 1000)}`;
 
   try {
@@ -149,10 +154,18 @@ app.post('/api/shipments', async (req, res) => {
         city,
         state,
         postalCode,
-        status: 'CREATED',
+        status: ShipmentStatus.CREATED,
         notes,
         customerId: resolvedCustomerId,
-        statusEvents: { create: [{ status: 'CREATED', actorType: 'USER', data: { via: 'dashboard' } }] }
+        statusEvents: {
+          create: [
+            {
+              status: ShipmentStatus.CREATED,
+              actorType: ActorType.USER,
+              data: { via: 'dashboard' }
+            }
+          ]
+        }
       },
       include: { customer: { select: { id: true, name: true } } }
     });
@@ -203,7 +216,7 @@ app.get('/api/dashboard/overview', async (_req, res) => {
         where: { tenantId }
       }),
       prisma.customer.count({ where: { tenantId } }),
-      prisma.route.count({ where: { tenantId, status: { notIn: ['CANCELED'] } } }),
+      prisma.route.count({ where: { tenantId, status: { notIn: [RouteStatus.CANCELED] } } }),
       prisma.shipment.findMany({
         where: { tenantId },
         take: 5,
@@ -212,8 +225,10 @@ app.get('/api/dashboard/overview', async (_req, res) => {
       })
     ]);
 
-    const shipmentsByStatus: Record<string, number> = {};
-    shipmentCounts.forEach((row: any) => { shipmentsByStatus[row.status] = row._count._all; });
+    const shipmentsByStatus: Partial<Record<ShipmentStatus, number>> = {};
+    shipmentCounts.forEach((row: any) => {
+      shipmentsByStatus[row.status as ShipmentStatus] = row._count._all;
+    });
 
     res.json({
       ok: true,
@@ -223,7 +238,10 @@ app.get('/api/dashboard/overview', async (_req, res) => {
           customers: customerCount,
           activeRoutes,
           activeDrivers: liveDrivers.size,
-          pendingDeliveries: (shipmentsByStatus['IN_TRANSIT'] || 0) + (shipmentsByStatus['ASSIGNED'] || 0) + (shipmentsByStatus['CREATED'] || 0)
+          pendingDeliveries:
+            (shipmentsByStatus[ShipmentStatus.IN_TRANSIT] || 0) +
+            (shipmentsByStatus[ShipmentStatus.ASSIGNED] || 0) +
+            (shipmentsByStatus[ShipmentStatus.CREATED] || 0)
         }
       },
       recentShipments

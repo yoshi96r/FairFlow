@@ -1,5 +1,11 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 model Tenant {
   id           String          @id @default(cuid())
@@ -25,7 +31,12 @@ model User {
   createdAt      DateTime @default(now())
 }
 
-enum UserRole { OWNER ADMIN DISPATCHER VIEWER }
+enum UserRole {
+  OWNER
+  ADMIN
+  DISPATCHER
+  VIEWER
+}
 
 model Driver {
   id            String   @id @default(cuid())
@@ -91,8 +102,21 @@ model Shipment {
   createdAt      DateTime        @default(now())
 }
 
-enum ServiceLevel { STANDARD EXPEDITED OVERNIGHT }
-enum ShipmentStatus { CREATED ASSIGNED IN_TRANSIT DELIVERED EXCEPTION RETURNED CANCELED }
+enum ServiceLevel {
+  STANDARD
+  EXPEDITED
+  OVERNIGHT
+}
+
+enum ShipmentStatus {
+  CREATED
+  ASSIGNED
+  IN_TRANSIT
+  DELIVERED
+  EXCEPTION
+  RETURNED
+  CANCELED
+}
 
 model Route {
   id          String      @id @default(cuid())
@@ -107,7 +131,13 @@ model Route {
   createdAt   DateTime    @default(now())
 }
 
-enum RouteStatus { DRAFT PUBLISHED LOCKED COMPLETED CANCELED }
+enum RouteStatus {
+  DRAFT
+  PUBLISHED
+  LOCKED
+  COMPLETED
+  CANCELED
+}
 
 model RouteStop {
   id          String   @id @default(cuid())
@@ -142,7 +172,12 @@ model StatusEvent {
   data      Json?
 }
 
-enum ActorType { SYSTEM USER DRIVER WEBHOOK }
+enum ActorType {
+  SYSTEM
+  USER
+  DRIVER
+  WEBHOOK
+}
 
 model PricingRule {
   id          String      @id @default(cuid())
@@ -156,7 +191,11 @@ model PricingRule {
   conditions  Json        @default("{}")
 }
 
-enum PricingType { PER_STOP PER_MILE FLAT_ZONE }
+enum PricingType {
+  PER_STOP
+  PER_MILE
+  FLAT_ZONE
+}
 
 model WebhookEndpoint {
   id       String         @id @default(cuid())
@@ -168,7 +207,16 @@ model WebhookEndpoint {
   events   WebhookEvent[] @default([])
 }
 
-enum WebhookEvent { shipment_created shipment_assigned shipment_scan_ok shipment_pod_captured shipment_delivered shipment_exception route_published route_completed }
+enum WebhookEvent {
+  shipment_created
+  shipment_assigned
+  shipment_scan_ok
+  shipment_pod_captured
+  shipment_delivered
+  shipment_exception
+  route_published
+  route_completed
+}
 
 model DriverPosition {
   id       String   @id @default(cuid())
@@ -179,6 +227,6 @@ model DriverPosition {
   speedKph Float?
   heading  Float?
   at       DateTime @default(now())
-}
 
-@@index([driverId, at])
+  @@index([driverId, at])
+}
