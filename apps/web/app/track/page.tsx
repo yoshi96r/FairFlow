@@ -73,36 +73,36 @@ export default function TrackPage() {
   function focus(driver:any){ mapRef.current?.flyTo({ center: [driver.lng, driver.lat], zoom: 14 }); }
 
   return (
-    <div className="grid grid-cols-12 h-[calc(100vh-64px)]">
-      <aside className="col-span-3 border-r p-3 space-y-3 overflow-auto">
-        <div className="flex gap-2">
-          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search driver…" className="border rounded px-2 py-1 w-full" />
-        </div>
-        <div className="space-y-1">
-          <button onClick={()=>setRouteFilter('ALL')} className={`text-sm ${routeFilter==='ALL'?'font-semibold':''}`}>All Routes</button>
-          {routes.map((r:any) => (
-            <div key={r.id} className="flex items-center gap-2 cursor-pointer" onClick={()=>setRouteFilter(r.id)}>
-              <span className="inline-block w-3 h-3 rounded-full" style={{ background: r.color }} />
-              <span className={`text-sm ${routeFilter===r.id?'font-semibold':''}`}>{r.id}</span>
-            </div>
-          ))}
-        </div>
-        <div className="text-xs opacity-70">Status: {connected ? 'live' : 'offline'}</div>
-        <div className="border-t pt-2 space-y-1">
-          {filtered.map((d:any) => (
-            <div key={d.id} className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <span className="inline-block w-3 h-3 rounded-full" style={{ background: colorForRoute(d.routeId) }} />
-                <span>{d.name}</span>
+    <div className="track-container">
+      <div className="track-layout">
+        <aside className="track-sidebar">
+          <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Search driver…" className="track-search" />
+          <div className="route-filter">
+            <button onClick={()=>setRouteFilter('ALL')} className={routeFilter==='ALL' ? 'active' : ''}>All routes</button>
+            {routes.map((r:any) => (
+              <button key={r.id} className={routeFilter===r.id ? 'active' : ''} onClick={()=>setRouteFilter(r.id)}>
+                <span className="status-pill"><span className="badge" style={{ background: r.color, color: '#fff' }}></span>{r.id}</span>
+              </button>
+            ))}
+          </div>
+          <div className="helper-text" style={{ marginBottom: 12 }}>Status: {connected ? 'Live feed' : 'Offline'}</div>
+          <div>
+            {filtered.map((d:any) => (
+              <div key={d.id} className="driver-row">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span className="badge" style={{ background: colorForRoute(d.routeId), color: '#fff' }}></span>
+                  <span>{d.name}</span>
+                </div>
+                <button className="focus-button" onClick={()=>focus(d)}>Focus</button>
               </div>
-              <button className="text-blue-600" onClick={()=>focus(d)}>focus</button>
-            </div>
-          ))}
-        </div>
-      </aside>
-      <main className="col-span-9">
-        <div ref={elRef} style={{ width: '100%', height: '100%' }} />
-      </main>
+            ))}
+            {!filtered.length && <div className="helper-text">No drivers match your filters.</div>}
+          </div>
+        </aside>
+        <main>
+          <div ref={elRef} className="track-map" />
+        </main>
+      </div>
     </div>
   );
 }
