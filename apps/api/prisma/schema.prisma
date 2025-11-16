@@ -59,6 +59,8 @@ model Customer {
   country       String   @default("US")
   shipments     Shipment[]
   createdAt     DateTime @default(now())
+
+  @@unique([tenantId, name], name: "name_tenantId")
 }
 
 model Shipment {
