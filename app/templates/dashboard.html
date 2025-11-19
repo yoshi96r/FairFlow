@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="kpis">
+  <div class="kpi"><strong>{{ open_count }}</strong><span>Open WOs</span></div>
+  <div class="kpi"><strong>{{ overdue_count }}</strong><span>Overdue</span></div>
+  <div class="kpi"><strong>{{ low_parts|length }}</strong><span>Low Stock</span></div>
+</section>
+<section>
+  <h2>Open Work Orders</h2>
+  <table>
+    <tr><th>ID</th><th>Type</th><th>Priority</th><th>Status</th><th>Due</th><th>Asset</th><th>Assigned</th></tr>
+    {% for w in wos if w.status != "Done" %}
+      <tr>
+        <td>{{ w.id }}</td>
+        <td>{{ w.type }}</td>
+        <td>{{ w.priority }}</td>
+        <td>{{ w.status }}</td>
+        <td>{{ w.due_date or "" }}</td>
+        <td>{{ w.asset_id or "" }}</td>
+        <td>{{ w.assigned_employee_id or "" }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</section>
+{% if low_parts %}
+<section>
+  <h2>Low Stock</h2>
+  <ul>
+    {% for p in low_parts %}
+      <li>{{ p.name }} ({{ p.qty }} ≤ min {{ p.min_qty }})</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}
