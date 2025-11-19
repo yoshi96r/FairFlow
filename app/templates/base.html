@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>USPS MOS Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+<header>
+  <h1>USPS MOS Assistant</h1>
+  <nav>
+    <a href="/">Dashboard</a>
+    <a href="/employees">Employees</a>
+    <a href="/assets">Assets</a>
+    <a href="/parts">Parts</a>
+    <a href="/workorders">Work Orders</a>
+    <a href="/reports/daily.csv">Daily CSV</a>
+  </nav>
+</header>
+<main>
+  {% block content %}{% endblock %}
+</main>
+<footer>
+  <small>Standalone helper; no USPS internal system access (eMARS/TACS/DOIS). Use exported CSVs to reconcile.</small>
+</footer>
+</body>
+</html>
