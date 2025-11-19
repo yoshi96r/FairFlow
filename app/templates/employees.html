@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Employees</h2>
+<table>
+  <tr><th>ID</th><th>Name</th><th>Role</th><th>Skills</th><th>TACS</th><th>Active</th></tr>
+  {% for e in employees %}
+    <tr>
+      <td>{{ e.id }}</td><td>{{ e.name }}</td><td>{{ e.role }}</td><td>{{ e.skills_csv }}</td><td>{{ e.tacs_id or "" }}</td><td>{{ e.active }}</td>
+    </tr>
+  {% endfor %}
+</table>
+<h3>Add</h3>
+<form method="post" action="/employees/add">
+  <input name="name" placeholder="Name" required/>
+  <input name="role" placeholder="Role" required/>
+  <input name="skills_csv" placeholder="skills (csv)"/>
+  <input name="tacs_id" placeholder="TACS ID"/>
+  <button>Add</button>
+</form>
+{% endblock %}

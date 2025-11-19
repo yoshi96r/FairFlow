@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Parts</h2>
+<table>
+  <tr><th>ID</th><th>SKU</th><th>Name</th><th>Qty</th><th>Min</th></tr>
+  {% for p in parts %}
+  <tr>
+    <td>{{ p.id }}</td><td>{{ p.sku }}</td><td>{{ p.name }}</td><td>{{ p.qty }}</td><td>{{ p.min_qty }}</td>
+  </tr>
+  {% endfor %}
+</table>
+<h3>Add</h3>
+<form method="post" action="/parts/add">
+  <input name="sku" placeholder="SKU" required/>
+  <input name="name" placeholder="Name" required/>
+  <input name="qty" type="number" value="0"/>
+  <input name="min_qty" type="number" value="0"/>
+  <button>Add</button>
+</form>
+{% endblock %}
