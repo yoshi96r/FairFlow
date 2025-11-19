@@ -7,12 +7,34 @@ const rawApiUrl =
 
 const normalizedApiUrl = rawApiUrl?.replace(/\/$/, '');
 
+function isLocalhostUrl(url) {
+  if (!url) return false;
+  try {
+    const { hostname } = new URL(url);
+    return (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '0.0.0.0' ||
+      hostname.endsWith('.local')
+    );
+  } catch {
+    return false;
+  }
+}
+
 const nextConfig = {
   reactStrictMode: true,
   async rewrites() {
     if (!normalizedApiUrl) {
       console.warn(
         '[@fairflow/web] No API_URL/NEXT_PUBLIC_API_URL set. Skipping /api rewrite to avoid crashing serverless functions.'
+      );
+      return [];
+    }
+
+    if (isProd && isLocalhostUrl(normalizedApiUrl)) {
+      console.warn(
+        '[@fairflow/web] API_URL/NEXT_PUBLIC_API_URL points to localhost in production. Skipping /api rewrite to prevent proxying Vercel functions back into themselves.'
       );
       return [];
     }
