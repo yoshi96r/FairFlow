@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Work Orders</h2>
+<div class="actions">
+  <form method="post" action="/workorders/generate_pm" style="display:inline">
+    <input name="range_days" type="number" value="30" min="1"/>
+    <button>Generate PMs</button>
+  </form>
+  <form method="post" action="/workorders/assign/auto" style="display:inline">
+    <button>Auto-Assign</button>
+  </form>
+</div>
+
+<table>
+  <tr><th>ID</th><th>Type</th><th>Priority</th><th>Status</th><th>Due</th><th>Asset</th><th>Assigned</th><th>eMARS</th><th>Close</th></tr>
+  {% for w in wos %}
+  <tr>
+    <td>{{ w.id }}</td>
+    <td>{{ w.type }}</td>
+    <td>{{ w.priority }}</td>
+    <td>{{ w.status }}</td>
+    <td>{{ w.due_date or "" }}</td>
+    <td>{% if w.asset_id %}{{ (assets|selectattr('id','equalto',w.asset_id)|list)[0].name }}{% endif %}</td>
+    <td>{% if w.assigned_employee_id %}{{ (employees|selectattr('id','equalto',w.assigned_employee_id)|list)[0].name }}{% else %}-{% endif %}</td>
+    <td>{{ w.emars_ref or "" }}</td>
+    <td>
+      {% if w.status != "Done" %}
+      <form method="post" action="/workorders/{{ w.id }}/close">
+        <textarea name="parts_used_json" placeholder='[{"part_id":1,"qty":2}]'></textarea>
+        <button>Close</button>
+      </form>
+      {% else %}Done{% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+
+<h3>Add</h3>
+<form method="post" action="/workorders/add">
+  <label>Type
+    <select name="type">
+      <option value="PM">PM</option>
+      <option value="Repair">Repair</option>
+    </select>
+  </label>
+  <label>Asset
+    <select name="asset_id">
+      <option value="">(none)</option>
+      {% for a in assets %}
+        <option value="{{ a.id }}">{{ a.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label>Priority
+    <select name="priority">
+      <option>1</option><option>2</option><option selected>3</option>
+    </select>
+  </label>
+  <label>Due Date <input type="date" name="due_date" value="{{ today }}"></label>
+  <input name="emars_ref" placeholder="eMARS ref"/>
+  <input name="notes" placeholder="Notes"/>
+  <button>Add</button>
+</form>
+{% endblock %}
