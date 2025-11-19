@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Assets</h2>
+<table>
+  <tr><th>ID</th><th>Name</th><th>Location</th><th>PM Interval (days)</th><th>Tags</th></tr>
+  {% for a in assets %}
+  <tr>
+    <td>{{ a.id }}</td><td>{{ a.name }}</td><td>{{ a.location }}</td><td>{{ a.pm_interval_days }}</td><td>{{ a.tags_csv }}</td>
+  </tr>
+  {% endfor %}
+</table>
+<h3>Add</h3>
+<form method="post" action="/assets/add">
+  <input name="name" placeholder="Name" required/>
+  <input name="location" placeholder="Location" required/>
+  <input name="pm_interval_days" type="number" min="0" value="30" required/>
+  <input name="tags_csv" placeholder="tags (csv)"/>
+  <button>Add</button>
+</form>
+{% endblock %}
