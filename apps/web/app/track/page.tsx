@@ -22,8 +22,10 @@ export default function TrackPage() {
   }, []);
 
   useEffect(() => {
-    const base = (process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL);
-    const url = base ? base.replace(/^http/, 'ws') + '/api/ws/live' : `ws://${window.location.hostname}:3001/api/ws/live`;
+    const base = process.env.NEXT_PUBLIC_WS_URL || process.env.NEXT_PUBLIC_API_URL;
+    const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const host = typeof window !== 'undefined' ? window.location.host : 'localhost:3001';
+    const url = base ? base.replace(/^http/, 'ws') + '/api/ws/live' : `${protocol}://${host}/api/ws/live`;
     const ws = new WebSocket(url);
     ws.onopen = () => setConnected(true);
     ws.onclose = () => setConnected(false);
