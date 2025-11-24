@@ -226,6 +226,68 @@ p {
   align-items: center;
 }
 
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border: 1px solid #d0d7de;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.chip-active {
+  background: rgba(0, 75, 135, 0.12);
+  border-color: #004b87;
+  color: #004b87;
+}
+
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #eef2f7;
+  color: #2c3e50;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.status-success { background: rgba(40, 167, 69, 0.15); color: #1b6d2f; }
+.status-warn { background: rgba(255, 193, 7, 0.18); color: #8a6c00; }
+
+.table-wrap { overflow-x: auto; }
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.table th, .table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+.table thead {
+  background: rgba(0, 75, 135, 0.08);
+}
+.muted { color: #6b7280; font-size: 13px; }
+
 @media (max-width: 768px) {
   main { padding: 16px; }
   .section { padding: 16px; }

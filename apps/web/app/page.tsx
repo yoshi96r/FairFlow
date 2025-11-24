@@ -1,61 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-
-type Package = {
-  id: string;
-  address: string;
-  preference: '@mailbox' | '@house';
-  instructions: string;
-  status: 'Pending' | 'Out for delivery' | 'Delivered';
-  photoHint: string;
-};
-
-type Stop = {
-  label: string;
-  address: string;
-  type: 'mailbox' | 'house';
-  note: string;
-  position: { x: number; y: number };
-};
-
-const basePackages: Package[] = [
-  {
-    id: '9405 5036 9934 8350 1234',
-    address: '312 Cedar Ave',
-    preference: '@mailbox',
-    instructions: 'Slide small parcels inside locking mailbox.',
-    status: 'Out for delivery',
-    photoHint: 'url("https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=800&q=80")',
-  },
-  {
-    id: '420 749 9999 0123',
-    address: '98 Prairie View Rd',
-    preference: '@house',
-    instructions: 'Leave at front porch bench; avoid blocking storm door.',
-    status: 'Pending',
-    photoHint: 'url("https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=800&q=80")',
-  },
-  {
-    id: '9274 8901 2300 1123',
-    address: '141 Sunrise Cir',
-    preference: '@house',
-    instructions: 'Customer requests side garage drop; dog on premises.',
-    status: 'Delivered',
-    photoHint: 'url("https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80")',
-  },
-];
-
-const stops: Stop[] = [
-  { label: 'Stewart Post Office', address: '707 Hall St, Stewart, MN', type: 'mailbox', note: 'Dispatch & return hub', position: { x: 8, y: 12 } },
-  { label: '312 Cedar Ave', address: 'Mailbox delivery', type: 'mailbox', note: 'Locking box on right-hand side', position: { x: 26, y: 32 } },
-  { label: '98 Prairie View Rd', address: 'Front porch bench', type: 'house', note: 'Right-hand drop, avoid storm door', position: { x: 52, y: 44 } },
-  { label: '141 Sunrise Cir', address: 'Garage-side drop', type: 'house', note: 'Dog on premises; knock', position: { x: 76, y: 58 } },
-  { label: 'Return to Stewart PO', address: 'End of tour', type: 'mailbox', note: 'Auto-report to supervisors', position: { x: 90, y: 80 } },
-];
+import { RouteMap } from './components/route-map';
+import { packageSeed, type Package } from './data/packages';
+import { stewartRouteStops, type RouteStop } from './data/routes';
 
 export default function Home() {
-  const [packages, setPackages] = useState<Package[]>(basePackages);
+  const [packages, setPackages] = useState<Package[]>(packageSeed);
   const [barcode, setBarcode] = useState('');
   const [preference, setPreference] = useState<'@mailbox' | '@house'>('@mailbox');
   const [note, setNote] = useState('Hand to customer if present; otherwise place out of weather.');
@@ -119,49 +70,20 @@ export default function Home() {
           <span className="pill">Dynamic line of travel</span>
         </div>
         <div className="grid" style={{ gridTemplateColumns: '1.3fr 0.7fr', gap: 16 }}>
-          <div className="route-map">
-            {stops.map((stop, index) => {
-              if (index === 0) return null;
-              const prev = stops[index - 1];
-              const dx = stop.position.x - prev.position.x;
-              const dy = stop.position.y - prev.position.y;
-              const length = Math.sqrt(dx * dx + dy * dy);
-              const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-              return (
-                <div
-                  key={`${prev.label}-${stop.label}-line`}
-                  className="route-line"
-                  style={{
-                    left: `${prev.position.x}%`,
-                    top: `${prev.position.y}%`,
-                    width: `${length}%`,
-                    transform: `rotate(${angle}deg)`
-                  }}
-                />
-              );
-            })}
-            {stops.map((stop, index) => (
-              <div
-                key={stop.label}
-                className={`route-node ${stop.type} ${index === 0 ? 'origin' : ''}`}
-                style={{ left: `${stop.position.x}%`, top: `${stop.position.y}%` }}
-                title={`${stop.label} — ${stop.address}`}
-              />
-            ))}
-            <div style={{ position: 'absolute', bottom: 12, left: 12, fontSize: 13, color: '#425466' }}>
-              Interactive map mirrors USPS right-hand delivery: each stop is sequenced so mailboxes stay on the driver&apos;s right and line-of-travel is preserved.
-            </div>
-          </div>
+          <RouteMap
+            stops={stewartRouteStops}
+            caption="Interactive map mirrors USPS right-hand delivery: each stop is sequenced so mailboxes stay on the driver&apos;s right and line-of-travel is preserved."
+          />
           <div className="list">
-            {stops.map((stop) => (
-              <div key={stop.label} className="list-item">
+            {stewartRouteStops.map((stop: RouteStop) => (
+              <div key={stop.id} className="list-item">
                 <div>
                   <strong>{stop.label}</strong>
                   <div style={{ fontSize: 13 }}>{stop.address}</div>
                   <div style={{ fontSize: 12, color: '#6b7280' }}>{stop.note}</div>
                 </div>
-                <span className={`pill ${stop.type === 'house' ? 'pill-success' : 'pill-warning'}`}>
-                  {stop.type === 'house' ? '@house drop' : '@mailbox drop'}
+                <span className={`pill ${stop.dropType === '@house' ? 'pill-success' : 'pill-warning'}`}>
+                  {stop.dropType}
                 </span>
               </div>
             ))}
