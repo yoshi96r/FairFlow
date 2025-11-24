@@ -1,11 +1,12 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import maplibregl, { Map as MLMap, Marker } from 'maplibre-gl';
+import type { Map as MLMap, Marker } from 'maplibre-gl';
 import { colorForRoute } from './colors';
 
 export default function TrackPage() {
   const mapRef = useRef(null as MLMap | null);
   const elRef = useRef(null as HTMLDivElement | null);
+  const maplibreRef = useRef<typeof import('maplibre-gl') | null>(null);
   const markers = useRef(new Map());
   const [connected, setConnected] = useState(false);
   const [drivers, setDrivers] = useState([] as any[]);
@@ -13,12 +14,23 @@ export default function TrackPage() {
   const [routeFilter, setRouteFilter] = useState('ALL' as any);
 
   useEffect(() => {
-    if (!elRef.current || mapRef.current) return;
-    const style = process.env.NEXT_PUBLIC_MAP_STYLE || process.env.MAP_STYLE || 'https://demotiles.maplibre.org/style.json';
-    const map = new maplibregl.Map({ container: elRef.current, style, center: [-87.623, 41.882], zoom: 11 });
-    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
-    mapRef.current = map;
-    return () => map.remove();
+    let mounted = true;
+    async function init() {
+      if (typeof window === 'undefined' || !elRef.current || mapRef.current || maplibreRef.current) return;
+      const mod = await import('maplibre-gl');
+      if (!mounted) return;
+      maplibreRef.current = mod;
+      const style = process.env.NEXT_PUBLIC_MAP_STYLE || process.env.MAP_STYLE || 'https://demotiles.maplibre.org/style.json';
+      const map = new mod.Map({ container: elRef.current, style, center: [-87.623, 41.882], zoom: 11 });
+      map.addControl(new mod.NavigationControl({ visualizePitch: true }), 'top-right');
+      mapRef.current = map as unknown as MLMap;
+    }
+    void init();
+    return () => {
+      mounted = false;
+      mapRef.current?.remove();
+      mapRef.current = null;
+    };
   }, []);
 
   useEffect(() => {
@@ -54,12 +66,12 @@ export default function TrackPage() {
       keep.add(d.id);
       let mk = m.get(d.id);
       const color = colorForRoute(d.routeId);
-      if (!mk) {
-        const el = document.createElement('div');
+      if (!mk && maplibreRef.current) { 
+        const el = document.createElement('div'); 
         el.style.width = '18px'; el.style.height = '18px'; el.style.borderRadius = '50%';
         el.style.background = color; el.style.boxShadow = '0 0 0 2px #fff';
-        mk = new (maplibregl as any).Marker({ element: el }).setLngLat([d.lng, d.lat])
-          .setPopup(new (maplibregl as any).Popup({ offset: 12 }).setHTML(`<b>${d.name}</b><br/>${d.routeId || 'Unassigned'}`))
+        mk = new (maplibreRef.current as any).Marker({ element: el }).setLngLat([d.lng, d.lat])
+          .setPopup(new (maplibreRef.current as any).Popup({ offset: 12 }).setHTML(`<b>${d.name}</b><br/>${d.routeId || 'Unassigned'}`))
           .addTo(mapRef.current);
         m.set(d.id, mk);
       }
